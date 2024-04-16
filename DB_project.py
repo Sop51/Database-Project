@@ -6,7 +6,7 @@ from string import Template
 import pymysql
 
 #LINK FOR WEB BROWSER:
-#https://bioed.bu.edu/cgi-bin/students_24/jlha/HuamanJoselyn_Search.py
+#https://bioed.bu.edu/cgi-bin/students_24/jlha/DB_project.py
 
 
 #for debugging
