@@ -124,7 +124,7 @@ response_gene_error = ""
 
 # Define the form
 form_html="""
-<form name="myForm" action="https://bioed.bu.edu/cgi-bin/students_24/Team_8/website.py" method="get"> 
+<form name="myForm" action="https://bioed.bu.edu/cgi-bin/students_24/jlha/DB_project.py" method="get"> 
     			<p>Input gene for example: INTS11</p>
                 Gene name: 
     				<input type="text" name="gene_name">
