@@ -26,6 +26,7 @@ cursor = connection.cursor()
 
 # Create the html template
 html_template = Template(
+"""
 <html>
     <head>
         <title>${title}</title>
@@ -112,6 +113,7 @@ html_template = Template(
 </script>
     </body>
 </html>
+"""
 )
 
 
