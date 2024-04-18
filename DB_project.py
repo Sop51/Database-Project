@@ -5,8 +5,8 @@ import cgitb
 from string import Template
 import pymysql
 
-#LINK FOR WEB BROWSER:
-#https://bioed.bu.edu/cgi-bin/students_24/jlha/DB_project.py
+#LINK FOR WEB BROWSER: (needs to be updated)
+#https://bioed.bu.edu/cgi-bin/students_24/Team_8/website.py
 
 
 #for debugging
@@ -126,7 +126,7 @@ response_gene_error = ""
 
 # Define the form
 form_html="""
-<form name="myForm" action="https://bioed.bu.edu/cgi-bin/students_24/jlha/DB_project.py" method="get"> 
+<form name="myForm" action="https://bioed.bu.edu/cgi-bin/students_24/Team_8/website.py" method="get"> 
     			<p>Input gene for example: INTS11</p>
                 Gene name: 
     				<input type="text" name="gene_name">
@@ -181,30 +181,63 @@ if (form):
             response_gene_error = response_gene_error.safe_substitute(gene_name=gene_name)
 
         else:
-            # Query the database - What does the alternative splicing look like for a particular phenotype
-            query_2 = """
-                    SELECT primary_diagnosis
-                    FROM META JOIN TCGA_Splice using (File_ID) 
-                    WHERE s.Gene_Name = %s AND s.Splicing_Event = %s 
-                    ORDER BY t.score ASC;
-                    """
-
-            cursor.execute(query_2, (gene_name, mechanism))
+            # Query the database - What does the splicing look like for gene and splice type
+            
+            if ${mechanism} == "a3ss":
+            	query_2 = """SELECT File_ID, Primary_Diagnosis, s.Score, Strand, Chromosome, Long_Exon_Start, Long_Exon_End, Short_Exon_Start, Short_Exon_End, Flanking_Exon_Start, Flanking_Exon_End
+							FROM TCGA_Metadata t JOIN TCGA_Splice s using(File_ID) 
+							WHERE s.Gene_Name = %s AND s.Splicing_Event = "a3ss" 
+							ORDER BY s.Score ASC;"""
+			elif ${mechanism} == "a5ss":
+            	query_2 = """SELECT File_ID, Primary_Diagnosis, s.Score, Strand, Chromosome, Long_Exon_Start, Long_Exon_End, Short_Exon_Start, Short_Exon_End, Flanking_Exon_Start, Flanking_Exon_End
+							FROM TCGA_Metadata t JOIN TCGA_Splice s using(File_ID) 
+							WHERE s.Gene_Name = %s AND s.Splicing_Event = "a5ss" 
+							ORDER BY s.Score ASC;"""
+			elif ${mechanism} == "afe":
+            	query_2 = """SELECT Primary_Diagnosis, s.Score
+							FROM TCGA_Metadata t JOIN TCGA_Splice s using(File_ID) 
+							WHERE s.Gene_Name = %s AND s.Splicing_Event = "afe" 
+							ORDER BY s.Score ASC;"""
+			elif ${mechanism} == "afe":
+            	query_2 = """SELECT Primary_Diagnosis, s.Score
+							FROM TCGA_Metadata t JOIN TCGA_Splice s using(File_ID) 
+							WHERE s.Gene_Name = %s AND s.Splicing_Event = "ale" 
+							ORDER BY s.Score ASC;"""
+			elif ${mechanism} == "mxe":
+            	query_2 = """SELECT Primary_Diagnosis, s.Score, Strand, Chromosome, Upstream_ES, Upstream_EE, Downstream_ES, Downstream_EE, 1st_Exon_Start, 1st_Exon_End, 2nd_Exon_Start, 2nd_Exon_End
+							FROM TCGA_Metadata t JOIN TCGA_Splice s using(File_ID) 
+							WHERE s.Gene_Name = %s AND s.Splicing_Event = "mxe" 
+							ORDER BY s.Score ASC;"""
+			elif ${mechanism} == "ri":
+				query_2 = """SELECT Primary_Diagnosis, s.Score, Strand, Chromosome, Exon_Start, Exon_End, Upstream_ES, Upstream_EE, Downstream_ES, Downstream_EE
+							FROM TCGA_Metadata t JOIN TCGA_Splice s using(File_ID) 
+							WHERE s.Gene_Name = %s AND s.Splicing_Event = "ri" 
+							ORDER BY s.Score ASC;"""
+			elif ${mechanism} == "se":
+				query_2 = """SELECT Primary_Diagnosis, s.Score, Strand, Chromosome, Exon_Start, Exon_End, Upstream_ES, Upstream_EE, Downstream_ES, Downstream_EE
+							FROM TCGA_Metadata t JOIN TCGA_Splice s using(File_ID) 
+							WHERE s.Gene_Name = %s AND s.Splicing_Event = "se" 
+							ORDER BY s.Score ASC;"""
+			elif ${mechanism} == "all":
+				query_2 = """SELECT * FROM TCGA_Metadata t JOIN TCGA_Splice s using(File_ID) WHERE s.Gene_Name = "RMST" ORDER BY s.Score ASC;"""
+            
+            cursor.execute(query_2, (gene_name))
             gene_splice_results = cursor.fetchall()
 
             if gene_splice_results:
-                # Create HTML table for results
+                # Create HTML table for results (need to edit this)
                 table_html = "<table border='1'><tr><th>mid</th><th>miRNA name</th><th>targeting score</th></tr>"
                 for result in mirna_results:
                     table_html += f"<tr><td>{result[0]}</td><td>{result[1]}</td><td>{result[2]}</td></tr>"
                 table_html += "</table>"
 
                 # Create summary statement
-                #count = len(mirna_results)
-                #summary = f"Gene {gene_name} is targeted by {count} miRNAs with scores ≤ {maximum}."            
+                splice_count = len(gene_splice_results)
+                summary = f"Gene {gene_name} has {splice_count} alternative splicing events of type ${mechanism}."  
+                          
             else:
                 table_html = ""  # Empty table if no results
-                summary = f"No miRNAs found for gene {gene_name} with scores ≤ {maximum}."
+                summary = f"No alternative splicing events are found in {gene_name} of type ${mechanism}."
 
             # Create a returning template for the html
             responses = Template(
